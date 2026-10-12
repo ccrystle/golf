@@ -1,0 +1,296 @@
+<title>Fairway Fundraisers</title>
+<base target="_blank">
+<style>
+/* Layout: one centered column, a segmented control switches List and Map; map is a schematic SVG of both counties with venue pins and a detail card. */
+:root {
+  --bg: #fbfbfd;
+  --surface: #ffffff;
+  --fg: #1d1d1f;
+  --fg-2: #6e6e73;
+  --fg-3: #aeaeb2;
+  --line: #e5e5ea;
+  --accent: #0071e3;
+  --accent-soft: #e8f1fd;
+  --county-l: #e9eef7;
+  --county-c: #eaf3ec;
+  --county-stroke: #c9ced8;
+  --seg-bg: #e9e9ec;
+  --shadow: 0 2px 10px rgba(0,0,0,.06);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000; --surface: #1c1c1e; --fg: #f5f5f7; --fg-2: #a1a1a6; --fg-3: #6e6e73;
+    --line: #2c2c2e; --accent: #2997ff; --accent-soft: #10263d;
+    --county-l: #1b2230; --county-c: #1a2a1f; --county-stroke: #3a3f4a; --seg-bg: #2c2c2e;
+    --shadow: 0 2px 12px rgba(0,0,0,.5); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000000; --surface: #1c1c1e; --fg: #f5f5f7; --fg-2: #a1a1a6; --fg-3: #6e6e73;
+  --line: #2c2c2e; --accent: #2997ff; --accent-soft: #10263d;
+  --county-l: #1b2230; --county-c: #1a2a1f; --county-stroke: #3a3f4a; --seg-bg: #2c2c2e;
+  --shadow: 0 2px 12px rgba(0,0,0,.5); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); -webkit-font-smoothing: antialiased; font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 920px; margin: 0 auto; padding-block: 40px 72px; padding-inline: 20px; }
+header { display: flex; flex-direction: column; gap: 6px; margin-bottom: 28px; }
+h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; margin: 0; line-height: 1.1; text-wrap: balance; }
+.sub { color: var(--fg-2); font-size: 16px; margin: 0; max-width: 60ch; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 20px; }
+.seg { display: inline-flex; background: var(--seg-bg); border-radius: 10px; padding: 2px; }
+.seg button { appearance: none; border: 0; background: transparent; color: var(--fg); font: inherit; font-size: 13px; font-weight: 500; padding: 6px 16px; border-radius: 8px; cursor: pointer; transition: background .15s, box-shadow .15s; }
+.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.seg button:focus-visible, .pill:focus-visible, .row:focus-visible, .pin:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.pill { appearance: none; font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg-2); cursor: pointer; }
+.pill[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.count { color: var(--fg-2); font-size: 13px; margin: 0 0 14px; font-variant-numeric: tabular-nums; }
+
+/* List */
+.group { margin-bottom: 26px; }
+.group h2 { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--fg-2); margin: 0 0 8px 4px; }
+.group h2 .today { color: var(--accent); margin-left: 8px; letter-spacing: 0; text-transform: none; font-weight: 600; }
+.card { background: var(--surface); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+.row { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding: 14px 18px; border-top: 1px solid var(--line); text-decoration: none; color: inherit; min-width: 0; }
+.row:first-child { border-top: 0; }
+.row:hover { background: var(--accent-soft); }
+.row.past { opacity: .55; }
+.row .name { font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+.row .org { color: var(--fg-2); }
+.row .where { color: var(--fg-2); font-size: 13px; margin-top: 2px; }
+.row .time { color: var(--fg); font-size: 13px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.row .tag { grid-column: 2; justify-self: end; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--fg-3); }
+.row .tag.warn { color: #b9770e; }
+.row .tag.l { color: #4f6ea8; } .row .tag.c { color: #3f8a55; }
+.row .cost { color: var(--fg-2); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.row .cost b { color: var(--fg); font-weight: 600; }
+.row .right { display: flex; flex-direction: column; gap: 2px; align-items: flex-end; }
+.detail .ev .cost { font-size: 13px; color: var(--fg); margin-top: 2px; }
+.detail .ev .cost b { font-weight: 600; }
+.detail h4 { margin: 8px 0 3px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--fg-3); }
+.detail ul { margin: 0; padding-left: 16px; font-size: 13px; color: var(--fg-2); }
+.detail ul li { margin: 1px 0; }
+.detail .none { font-size: 13px; color: var(--fg-3); font-style: normal; }
+.detail .hint { font-size: 12px; color: var(--fg-3); margin: 10px 0 0; }
+@media (max-width: 520px) { .row { grid-template-columns: 1fr; } .row .time, .row .cost { text-align: left; } .row .right { align-items: flex-start; } .row .tag { grid-column: 1; justify-self: start; } }
+
+/* Map */
+.mapwrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+@media (max-width: 760px) { .mapwrap { grid-template-columns: 1fr; } }
+.mapcard { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); padding: 12px; min-width: 0; }
+svg { width: 100%; height: auto; display: block; max-width: 100%; }
+.county { stroke: var(--county-stroke); stroke-width: 1.2; stroke-linejoin: round; }
+.county.l { fill: var(--county-l); } .county.c { fill: var(--county-c); }
+.clabel { font: 600 13px var(--font); letter-spacing: .12em; text-transform: uppercase; fill: var(--fg-3); }
+.town { font: 11px var(--font); fill: var(--fg-2); }
+.town-dot { fill: var(--fg-3); }
+.pin { cursor: pointer; }
+.pin circle.halo { fill: var(--accent); opacity: 0; transition: opacity .15s; }
+.pin circle.dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.pin.past circle.dot { fill: var(--fg-3); }
+.pin text { font: 600 10px var(--font); fill: var(--surface); text-anchor: middle; pointer-events: none; }
+.pin:hover circle.halo, .pin.active circle.halo { opacity: .18; }
+.pin.active circle.dot { stroke: var(--accent); fill: var(--surface); }
+.pin.active text { fill: var(--accent); }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--fg-2); padding: 8px 6px 0; flex-wrap: wrap; }
+.legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -0.5px; }
+.legend .up::before { background: var(--accent); } .legend .pa::before { background: var(--fg-3); }
+.detail { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); padding: 18px; min-height: 120px; }
+.detail h3 { margin: 0 0 2px; font-size: 17px; letter-spacing: -0.01em; }
+.detail .addr { color: var(--fg-2); font-size: 13px; margin: 0 0 12px; }
+.detail .ev { border-top: 1px solid var(--line); padding: 10px 0; text-decoration: none; color: inherit; display: block; }
+.detail .ev:hover .name { color: var(--accent); }
+.detail .ev .name { font-weight: 600; }
+.detail .ev .meta { color: var(--fg-2); font-size: 13px; }
+.detail .empty { color: var(--fg-2); font-size: 14px; margin: 0; }
+.note { color: var(--fg-3); font-size: 12px; margin: 18px 0 0; max-width: 70ch; }
+footer { margin-top: 40px; color: var(--fg-3); font-size: 12px; max-width: 70ch; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Fairway Fundraisers</h1>
+    <p class="sub">Nonprofit golf tournaments in Lancaster and Chester counties, Pennsylvania, October and November 2026.</p>
+  </header>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="View">
+      <button id="btn-list" aria-pressed="true">List</button>
+      <button id="btn-map" aria-pressed="false">Map</button>
+    </div>
+    <div class="pills" role="group" aria-label="County">
+      <button class="pill" data-county="all" aria-pressed="true">All</button>
+      <button class="pill" data-county="L" aria-pressed="false">Lancaster</button>
+      <button class="pill" data-county="C" aria-pressed="false">Chester</button>
+    </div>
+  </div>
+  <p class="count" id="count"></p>
+
+  <section id="list"></section>
+
+  <section id="map" hidden>
+    <div class="mapwrap">
+      <div class="mapcard">
+        <svg id="svg" viewBox="0 0 1060 640" role="img" aria-label="Schematic map of Lancaster and Chester counties with golf venue pins"></svg>
+        <div class="legend"><span class="up">Upcoming</span><span class="pa">Already held</span><span>Numbers show events per venue</span></div>
+      </div>
+      <aside class="detail" id="detail"><p class="empty">Hover over a pin to see events, entry cost and outing details. Click to keep it open.</p></aside>
+    </div>
+    <p class="note">County outlines and pin positions are schematic and approximate. Use the source links for directions.</p>
+  </section>
+
+  <footer>Compiled October 12, 2026 from club calendars, organizer pages, chamber calendars and event aggregators. Confirm dates and times with each organizer before registering. Two entries marked Unconfirmed have no stated beneficiary on the source page.</footer>
+</div>
+
+<script>
+const TODAY = "2026-10-12";
+const VENUES = {
+  tanglewood: { name: "Tanglewood Manor Golf Club", addr: "653 Scotland Rd, Quarryville", lat: 39.934, lon: -76.128, county: "L" },
+  treetop:    { name: "Tree Top Golf Course", addr: "1624 Creek Rd, Manheim", lat: 40.186, lon: -76.428, county: "L" },
+  meadia:     { name: "Meadia Heights Golf Club", addr: "402 Golf Rd, Lancaster", lat: 40.012, lon: -76.283, county: "L" },
+  overlook:   { name: "Overlook Golf Course", addr: "2040 Lititz Pike, Lancaster", lat: 40.086, lon: -76.303, county: "L" },
+  chestervalley: { name: "Chester Valley Golf Club", addr: "430 Swedesford Rd, Malvern", lat: 40.050, lon: -75.520, county: "C" },
+  whitford:   { name: "Whitford Country Club", addr: "600 Whitford Hills Rd, Exton", lat: 40.030, lon: -75.645, county: "C" },
+  applecross: { name: "Applecross Country Club", addr: "170 Zynn Rd, Downingtown", lat: 40.045, lon: -75.735, county: "C" },
+  whitemanor: { name: "White Manor Country Club", addr: "831 Providence Rd, Malvern", lat: 40.005, lon: -75.527, county: "C" },
+  downingtown:{ name: "Downingtown Country Club", addr: "93 Country Club Dr, Downingtown", lat: 40.015, lon: -75.690, county: "C" },
+  honeybrook: { name: "Honeybrook Golf Club", addr: "1422 Cambridge Rd, Honey Brook", lat: 40.083, lon: -75.897, county: "C" },
+  inniscrone: { name: "Inniscrone Golf Club", addr: "15 Athelone Way, Avondale", lat: 39.840, lon: -75.790, county: "C" },
+  pennoaks:   { name: "Penn Oaks Golf Club", addr: "150 Penn Oaks Dr, West Chester", lat: 39.935, lon: -75.620, county: "C" },
+  hartefeld:  { name: "Hartefeld National", addr: "1 Hartefeld Dr, Avondale", lat: 39.820, lon: -75.760, county: "C" },
+  waynesborough: { name: "Waynesborough Country Club", addr: "440 Darby Rd, Paoli", lat: 40.035, lon: -75.470, county: "C" }
+};
+const EVENTS = [
+  { d: "2026-10-02", org: "Harford Christian School", name: "Harford Christian School Golf Outing", v: "tanglewood", time: "8:30 AM start", cost: "Not posted", details: [], src: "https://www.twgolf.com/outings-instruction/calendar/eventdetail/230/-/harford-christian-school-golf-outing" },
+  { d: "2026-10-03", org: "Elizabethtown Troop 1 Boy Scouts", name: "5th Annual Troop 1 Benefit Golf Scramble", v: "treetop", time: "8:00 AM shotgun", cost: "$280 per team of 4", details: ["Scramble format", "Top team prize of $280", "Longest drive, ladies' and men's", "Closest to the pin", "Basket raffle, popcorn sale and 50/50", "Event sponsor $100, hole sponsor $40"], src: "https://www.treetopgolf.com/wp-content/uploads/sites/8538/2026/08/Troop-1-Outing.pdf" },
+  { d: "2026-10-05", org: "Safe Harbor of Chester County", name: "Golftoberfest 2026", v: "chestervalley", time: "Check-in 10:30 AM · Shotgun 12:00 PM", cost: "$450 golfer · $1,550 foursome · $175 pickleball · $135 dinner only", details: ["Scramble, with men's, women's and senior tees", "Putting contest, longest drive and closest to the pin", "BBQ lunch buffet, open bar and coffee truck at check-in", "Custom sleeve of golf balls and on-course snacks", "Dinner buffet at 5 PM with awards, raffles and silent auction", "Pickleball clinic and mini tournament, 2 to 7 PM", "Sponsorships from $200 hole to $10,000 presenting"], src: "https://vista.today/2026/08/golftoberfest-2026-safe-harbor-chester-county/" },
+  { d: "2026-10-05", org: "Handi-Crafters", name: "40th Annual Hankin Invitational", v: "whitford", time: "AM flight 7:45 · PM flight 1:00", cost: "Sold out, price not posted", details: ["Two scrambles, morning and afternoon flights", "Hole-in-one, longest drive and closest to the pin contests", "Golf ball drop contest", "Continental breakfast, BBQ lunch and halfway house", "Cocktails and open bar at 6 PM, dinner and awards at 6:30"], src: "https://handi-crafters.org/2026-hankin/" },
+  { d: "2026-10-05", org: "Limoncello Foundation, for Chester County Hospital NICU", name: "The Limoncello Open", v: "applecross", time: "10:00 AM to 9:00 PM", cost: "Not posted · hole sponsor $250", details: [], src: "https://business.chescochamber.org/member-event-calendar/Details/the-limoncello-open-benefiting-the-chester-county-hospital-nicu-1912876" },
+  { d: "2026-10-05", org: "Chester County Chiefs of Police Association", name: "2026 Chief's Golf Outing", v: "whitemanor", time: "Registration and lunch 10:30 AM · Shotgun 12:00 PM", cost: "$225 golfer · $900 foursome · $75 dinner only", details: ["Entry includes practice facilities, lunch and prizes", "Dinner with two-hour open bar and hors d'oeuvres", "Hole-in-one for public safety contest", "Proceeds support police officer training and education"], src: "https://www.ccchiefs.org/golf-outing/" },
+  { d: "2026-10-05", org: "West Chester University Wrestling", name: "3rd Annual WCU Wrestling Golf Outing", v: "downingtown", time: "8:00 AM", cost: "Not posted", details: [], src: "https://www.eventbrite.com/d/pa--pottstown/tournaments/" },
+  { d: "2026-10-05", org: "Delaware Valley RIMS Chapter", name: "2026 Delaware Valley RIMS Golf Outing", v: "waynesborough", time: "9:00 AM to 6:00 PM", cost: "Not posted · early-bird deadline was Sept 4", details: ["Raffle with gifts and prizes, tickets online and at registration", "Driving range and putting practice", "Sponsorships no longer include a foursome"], src: "https://www.simpletix.com/e/2026-delaware-valley-rims-golf-outing-tickets-282380", flag: "Association fundraiser" },
+  { d: "2026-10-09", org: "Wreaths Across America, Pequea Valley Chapter", name: "6th Annual Golf Classic", v: "tanglewood", time: "8:30 AM shotgun", cost: "Flat fee per golfer, amount not posted", details: ["Fee covers golf, cart, snacks and lunch", "Last year drew 104 golfers", "Contact Paula Diem, 717-587-1315"], src: "https://www.twgolf.com/outings-instruction/calendar/eventdetail/323/-/wreaths-across-america-golf-tournament" },
+  { d: "2026-10-09", org: "Knights of Columbus", name: "Knights of Columbus Outing", v: "overlook", time: "1:00 PM shotgun", cost: "Not posted", details: [], src: "https://www.overlookgolfcourse.com/events/calendar/eventdetail/334/-/knight-s-of-columbus", flag: "Unconfirmed" },
+  { d: "2026-10-12", org: "Bob Gingher Charities, for Pequea Valley Education Foundation", name: "Bob Gingher Memorial Charity Golf Tournament", v: "meadia", time: "Check-in 10:30 AM · Shotgun 12:00 PM", cost: "$125 golfer · $45 dinner and awards only", details: ["Scramble format", "Entry includes golf, cart and dinner", "Dinner, cash bar and awards ceremony after play", "Rain or shine, no refunds", "Also benefits the William S. Baer School, Baltimore"], src: "https://lancasteronline.com/sports/local_sports/lancaster-scene-sports-calendar-and-listings-from-across-the-area-for-week-starting-oct-4/article_4bf47fff-3749-4ed0-af5f-7c6d8a35f08d.html" },
+  { d: "2026-10-12", org: "Propell Kids Foundation", name: "8th Annual Propell Kids Foundation Golf Classic", v: "applecross", time: "10:30 AM shotgun", cost: "Not posted", details: ["18-hole event"], src: "https://www.playprivategolf.com/events/8th-annual-propell-kids-foundation-golf-classic-applecross-country-club-9d028491-3054-47de-be26-a406edd08393" },
+  { d: "2026-10-12", org: "Stronghold Leadership", name: "Veteran Education Classic 2026", v: "downingtown", time: "Check-in 10:30 AM · Play 12:00 to 4:30 PM", cost: "$200 golfer · $730 foursome", details: ["Four-person scramble", "Check-in, bag drop and lunch 10:30 AM to noon", "Opening remarks before the start", "Sponsorship opportunities available"], src: "https://events.golfstatus.com/event/veteran-education-classic-2026" },
+  { d: "2026-10-12", org: "City of Coatesville Police Officers Union", name: "6th Annual Golf Tournament", v: "honeybrook", time: "Time not posted", cost: "$165 golfer · $660 foursome", details: ["Entry includes greens fees, cart, meals and drinks"], src: "https://golfevents.com/event/coatesville-police-officers-union-golf-outing", flag: "Union fundraiser" },
+  { d: "2026-10-13", org: "Honey Brook Food Pantry", name: "Honey Brook Food Pantry Golf Outing", v: "honeybrook", time: "Registration 8:00 AM · Shotgun 9:00 AM", cost: "Not posted", details: ["Entry includes golf, cart, range, lunch, prizes and awards", "Part of each entry is donated to the pantry", "Play or sponsor; donations accepted"], src: "https://www.honeybrookgolf.com/upcoming-events" },
+  { d: "2026-10-18", org: "Solanco Midget Football", name: "Solanco Midget Football Outing", v: "tanglewood", time: "Begins 1:00 PM", cost: "Not posted", details: ["Contact Derrick Kreider, 717-572-5288"], src: "https://www.twgolf.com/outings-instruction/calendar/eventdetail/578/-/solanco-midget-football-outing" },
+  { d: "2026-10-23", org: "Avon Grove Area Little League", name: "AGALL 2026 Golf Outing", v: "inniscrone", time: "Check-in 9:00 AM", cost: "Not posted", details: ["Organizer says more details and registration to come"], src: "https://allevents.in/avondale/agall-2026-golf-outing/200030570449539" },
+  { d: "2026-10-26", org: "Bishop Shanahan High School", name: "8th Annual Eagle Classic", v: "pennoaks", time: "9:30 AM shotgun", cost: "Not posted · registration coming soon", details: ["Full 18-hole scramble", "Food and drink stations around the course", "Lunch, buffet dinner and two-hour open bar", "Games and contests all day, per organizer"], src: "https://www.shanahan.org/athletics/eagleclassic" },
+  { d: "2026-10-26", org: "Malvern Prep Alumni Association", name: "42nd Annual Alumni Golf Classic & Dinner", v: "chestervalley", time: "Check-in 11:15 AM · Shotgun 1:00 PM · Dinner 6:30 PM", cost: "$395 golfer · $40 lunch only · $110 cocktails and dinner only", details: ["Longest drive and closest to the pin contests", "Raffles and live entertainment", "Lunch, cocktail party and dinner reception", "Register by October 19; sponsorships by October 12"], src: "https://www.malvernprep.org/alumni/alumni-events/alumni-golf-outing" },
+  { d: "2026-11-09", org: "Archmere Academy", name: "39th Annual Archmere Golf Outing", v: "hartefeld", time: "Registration 10:00 AM · Shotgun 11:00 AM", cost: "Golfer fee not posted · sponsorships $100 to $5,000", details: ["Scramble with shotgun start, rain or shine", "Boxed lunch at registration", "Cocktails 5 PM, dinner and awards 6 PM", "Hole sponsor $350, putting green sponsor $500", "Open to alumni, parents, faculty and friends"], src: "https://www.archmereacademy.com/alumni/golf-outing" }
+];
+const TOWNS = [
+  ["Lancaster", 40.038, -76.306], ["Quarryville", 39.897, -76.163], ["Manheim", 40.163, -76.395], ["Lititz", 40.157, -76.307],
+  ["Ephrata", 40.180, -76.179], ["Elizabethtown", 40.153, -76.603], ["Columbia", 40.034, -76.504],
+  ["West Chester", 39.961, -75.606], ["Downingtown", 40.006, -75.703], ["Coatesville", 39.983, -75.824],
+  ["Phoenixville", 40.130, -75.515], ["Oxford", 39.785, -75.979], ["Avondale", 39.823, -75.783], ["Honey Brook", 40.094, -75.911]
+];
+const LANCASTER = [[40.22,-76.73],[40.27,-76.58],[40.31,-76.45],[40.33,-76.28],[40.30,-76.13],[40.24,-76.02],[40.17,-75.93],[40.05,-76.00],[39.95,-76.05],[39.85,-76.10],[39.72,-76.14],[39.72,-76.24],[39.80,-76.27],[39.90,-76.35],[40.00,-76.50],[40.05,-76.53],[40.12,-76.63]];
+const CHESTER = [[40.17,-75.93],[40.24,-75.68],[40.20,-75.57],[40.15,-75.52],[40.10,-75.42],[40.06,-75.40],[40.02,-75.44],[39.95,-75.50],[39.87,-75.59],[39.84,-75.62],[39.80,-75.72],[39.72,-75.79],[39.72,-76.14],[39.85,-76.10],[39.95,-76.05],[40.05,-76.00]];
+
+const K = 1000, COS = 0.766, LON0 = -76.78, LAT0 = 40.36;
+const px = (lat, lon) => [((lon - LON0) * COS * K + 10).toFixed(1), ((LAT0 - lat) * K + 10).toFixed(1)];
+const fmtDate = d => new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+const shortDate = d => new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+const costHtml = c => c.startsWith("$") ? "<b>" + esc(c.split(" · ")[0]) + "</b>" + esc(c.includes(" · ") ? " · " + c.split(" · ").slice(1).join(" · ") : "") : esc(c);
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let county = "all", view = "list", active = null, pinned = false;
+try { const s = localStorage.getItem("ff-view"); if (s === "map" || s === "list") view = s; } catch (e) {}
+if (location.hash === "#map") view = "map";
+
+const filtered = () => EVENTS.filter(e => county === "all" || VENUES[e.v].county === county);
+
+function renderList() {
+  const list = document.getElementById("list");
+  const evs = filtered();
+  const groups = {};
+  evs.forEach(e => (groups[e.d] = groups[e.d] || []).push(e));
+  list.innerHTML = Object.keys(groups).sort().map(d => `
+    <div class="group">
+      <h2>${fmtDate(d)}${d === TODAY ? '<span class="today">Today</span>' : ""}</h2>
+      <div class="card">${groups[d].map(e => {
+        const v = VENUES[e.v];
+        return `<a class="row${e.d < TODAY ? " past" : ""}" href="${e.src}" target="_blank" rel="noopener">
+          <div><div class="name">${esc(e.name)}</div><div class="org">${esc(e.org)}</div>
+          <div class="where">${esc(v.name)} · ${esc(v.addr)}</div></div>
+          <div class="right"><div class="time">${esc(e.time)}</div><div class="cost">${costHtml(e.cost)}</div></div>
+          <div class="tag ${e.flag ? "warn" : v.county.toLowerCase()}">${e.flag ? esc(e.flag) : (v.county === "L" ? "Lancaster County" : "Chester County")}</div>
+        </a>`; }).join("")}</div>
+    </div>`).join("");
+  document.getElementById("count").textContent = `${evs.length} events · ${new Set(evs.map(e => e.v)).size} clubs`;
+}
+
+function renderMap() {
+  const svg = document.getElementById("svg");
+  const poly = pts => pts.map(p => px(p[0], p[1]).join(",")).join(" ");
+  const evs = filtered();
+  const byV = {};
+  evs.forEach(e => (byV[e.v] = byV[e.v] || []).push(e));
+  const dim = c => county !== "all" && county !== c ? ' style="opacity:.35"' : "";
+  let s = `<polygon class="county l" points="${poly(LANCASTER)}"${dim("L")}></polygon><polygon class="county c" points="${poly(CHESTER)}"${dim("C")}></polygon>`;
+  const [lx, ly] = px(40.27, -76.58), [cx, cy] = px(39.78, -75.90);
+  s += `<text class="clabel" x="${lx}" y="${ly}" transform="translate(30,30)">Lancaster</text><text class="clabel" x="${cx}" y="${cy}" transform="translate(0,-6)">Chester</text>`;
+  TOWNS.forEach(([n, la, lo]) => { const [x, y] = px(la, lo); s += `<circle class="town-dot" cx="${x}" cy="${y}" r="2"></circle><text class="town" x="${+x + 5}" y="${+y - 4}">${n}</text>`; });
+  Object.keys(byV).forEach(k => {
+    const v = VENUES[k], [x, y] = px(v.lat, v.lon);
+    const past = byV[k].every(e => e.d < TODAY);
+    s += `<g class="pin${past ? " past" : ""}${active === k ? " active" : ""}" data-v="${k}" tabindex="0" role="button" aria-label="${esc(v.name)}">
+      <circle class="halo" cx="${x}" cy="${y}" r="20"></circle><circle class="dot" cx="${x}" cy="${y}" r="11"></circle>
+      <text x="${x}" y="${+y + 3.5}">${byV[k].length}</text></g>`;
+  });
+  svg.innerHTML = s;
+  svg.addEventListener("click", () => { if (pinned) { pinned = false; active = null; renderMap(); renderDetail(); } });
+  svg.querySelectorAll(".pin").forEach(p => {
+    const go = () => { active = p.dataset.v; pinned = true; renderMap(); renderDetail(); };
+    p.addEventListener("mouseenter", () => { if (!pinned) { active = p.dataset.v; renderDetail(); } });
+    p.addEventListener("mouseleave", () => { if (!pinned) { active = null; renderDetail(); } });
+    p.addEventListener("focus", () => { if (!pinned) { active = p.dataset.v; renderDetail(); } });
+    p.addEventListener("click", ev => { ev.stopPropagation(); if (pinned && active === p.dataset.v) { pinned = false; renderMap(); renderDetail(); } else go(); });
+    p.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); go(); } });
+  });
+}
+
+function renderDetail() {
+  const d = document.getElementById("detail");
+  if (!active || !filtered().some(e => e.v === active)) { d.innerHTML = '<p class="empty">Hover over a pin to see events, entry cost and outing details. Click to keep it open.</p>'; return; }
+  const v = VENUES[active];
+  const evs = filtered().filter(e => e.v === active).sort((a, b) => a.d < b.d ? -1 : 1);
+  d.innerHTML = `<h3>${esc(v.name)}</h3><p class="addr">${esc(v.addr)} · ${v.county === "L" ? "Lancaster" : "Chester"} County</p>` +
+    evs.map(e => `<a class="ev" href="${e.src}" target="_blank" rel="noopener">
+      <div class="name">${esc(e.name)}</div><div class="meta">${esc(e.org)}</div>
+      <div class="meta">${shortDate(e.d)} · ${esc(e.time)}${e.d < TODAY ? " · Held" : ""}</div>
+      <div class="cost">Entry: ${costHtml(e.cost)}</div>
+      <h4>Outing details</h4>
+      ${e.details.length ? "<ul>" + e.details.map(x => "<li>" + esc(x) + "</li>").join("") + "</ul>" : '<div class="none">Not posted by the organizer.</div>'}
+    </a>`).join("") + (pinned ? '<p class="hint">Pinned. Click the pin again or the map to release.</p>' : "");
+}
+
+function setView(v) {
+  view = v;
+  document.getElementById("list").hidden = v !== "list";
+  document.getElementById("map").hidden = v !== "map";
+  document.getElementById("btn-list").setAttribute("aria-pressed", v === "list");
+  document.getElementById("btn-map").setAttribute("aria-pressed", v === "map");
+  try { localStorage.setItem("ff-view", v); } catch (e) {}
+  if (v === "map") { renderMap(); renderDetail(); }
+}
+document.getElementById("btn-list").addEventListener("click", () => setView("list"));
+document.getElementById("btn-map").addEventListener("click", () => setView("map"));
+document.querySelectorAll(".pill").forEach(p => p.addEventListener("click", () => {
+  county = p.dataset.county;
+  document.querySelectorAll(".pill").forEach(q => q.setAttribute("aria-pressed", q === p));
+  renderList(); if (view === "map") { renderMap(); renderDetail(); }
+}));
+document.addEventListener("click", ev => {
+  const a = ev.target.closest("a[href]");
+  if (a && /^https?:/.test(a.href)) { a.target = "_blank"; a.rel = "noopener"; }
+});
+renderList(); setView(view);
+</script>
