@@ -58,6 +58,7 @@ h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; margin: 0; line
 .row:hover { background: var(--accent-soft); }
 .row.past { opacity: .55; }
 .row .name { font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+.row .name .bar { color: var(--fg-3); font-weight: 400; margin: 0 2px; }
 .row .org { color: var(--fg-2); }
 .row .where { color: var(--fg-2); font-size: 13px; margin-top: 2px; }
 .row .time { color: var(--fg); font-size: 13px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -218,8 +219,8 @@ function renderList() {
       <div class="card">${groups[d].map(e => {
         const v = VENUES[e.v];
         return `<a class="row${e.d < TODAY ? " past" : ""}" href="${e.src}" target="_blank" rel="noopener">
-          <div><div class="name">${esc(e.name)}</div><div class="org">${esc(e.org)}</div>
-          <div class="where">${esc(v.name)} · ${esc(v.addr)}</div></div>
+          <div><div class="name">${esc(v.name)} <span class="bar">|</span> ${esc(e.name)}</div><div class="org">${esc(e.org)}</div>
+          <div class="where">${esc(v.addr)}</div></div>
           <div class="right"><div class="time">${esc(e.time)}</div><div class="cost">${costHtml(e.cost)}</div></div>
           <div class="tag ${e.flag ? "warn" : v.county.toLowerCase()}">${e.flag ? esc(e.flag) : (v.county === "L" ? "Lancaster County" : "Chester County")}</div>
         </a>`; }).join("")}</div>
