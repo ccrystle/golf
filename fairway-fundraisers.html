@@ -212,7 +212,7 @@ function renderList() {
   const evs = filtered();
   const groups = {};
   evs.forEach(e => (groups[e.d] = groups[e.d] || []).push(e));
-  list.innerHTML = Object.keys(groups).sort().map(d => `
+  list.innerHTML = Object.keys(groups).sort().reverse().map(d => `
     <div class="group">
       <h2>${fmtDate(d)}${d === TODAY ? '<span class="today">Today</span>' : ""}</h2>
       <div class="card">${groups[d].map(e => {
@@ -261,7 +261,7 @@ function renderDetail() {
   const d = document.getElementById("detail");
   if (!active || !filtered().some(e => e.v === active)) { d.innerHTML = '<p class="empty">Hover over a pin to see events, entry cost and outing details. Click to keep it open.</p>'; return; }
   const v = VENUES[active];
-  const evs = filtered().filter(e => e.v === active).sort((a, b) => a.d < b.d ? -1 : 1);
+  const evs = filtered().filter(e => e.v === active).sort((a, b) => a.d > b.d ? -1 : 1);
   d.innerHTML = `<h3>${esc(v.name)}</h3><p class="addr">${esc(v.addr)} · ${v.county === "L" ? "Lancaster" : "Chester"} County</p>` +
     evs.map(e => `<a class="ev" href="${e.src}" target="_blank" rel="noopener">
       <div class="name">${esc(e.name)}</div><div class="meta">${esc(e.org)}</div>
