@@ -64,6 +64,10 @@ h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; margin: 0; line
 .stars .s .f { position: absolute; left: 0; top: 0; overflow: hidden; white-space: nowrap; color: #f5a623; opacity: 1; }
 .stars b { font-weight: 600; color: var(--fg); }
 .stars .na { color: var(--fg-3); }
+.usga { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--fg-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.usga .lbl { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--fg-3); }
+.usga b { font-weight: 600; color: var(--fg); }
+.detail .rating { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .row .where { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
 .detail .rating { margin: -8px 0 12px; }
 .row .org { color: var(--fg-2); }
@@ -150,26 +154,26 @@ footer { margin-top: 40px; color: var(--fg-3); font-size: 12px; max-width: 70ch;
     <p class="note">County outlines and pin positions are schematic and approximate. Use the source links for directions.</p>
   </section>
 
-  <footer>Compiled October 12, 2026 from club calendars, organizer pages, chamber calendars and event aggregators. Confirm dates and times with each organizer before registering. Two entries marked Unconfirmed have no stated beneficiary on the source page. Club ratings are Google user ratings as mirrored by third-party pages on October 12, 2026; this prototype will switch to the Google Places API.</footer>
+  <footer>Compiled October 12, 2026 from club calendars, organizer pages, chamber calendars and event aggregators. Confirm dates and times with each organizer before registering. Two entries marked Unconfirmed have no stated beneficiary on the source page. Club ratings are Google user ratings as mirrored by third-party pages on October 12, 2026; this prototype will switch to the Google Places API. USGA figures are the men's course rating and slope from the back tees, per the Golf Association of Philadelphia club directory (Tree Top from GolfLink).</footer>
 </div>
 
 <script>
 const TODAY = "2026-10-12";
 const VENUES = {
-  tanglewood: { name: "Tanglewood Manor Golf Club", addr: "653 Scotland Rd, Quarryville", lat: 39.934, lon: -76.128, county: "L", rating: { score: 4.5, count: 360, src: "Google via Wanderlog" } },
-  treetop:    { name: "Tree Top Golf Course", addr: "1624 Creek Rd, Manheim", lat: 40.186, lon: -76.428, county: "L", rating: { score: 3.5, count: 186, src: "Google via Wanderlog" } },
-  meadia:     { name: "Meadia Heights Golf Club", addr: "402 Golf Rd, Lancaster", lat: 40.012, lon: -76.283, county: "L", rating: { score: 4.5, count: 119, src: "Google via Wanderlog" } },
-  overlook:   { name: "Overlook Golf Course", addr: "2040 Lititz Pike, Lancaster", lat: 40.086, lon: -76.303, county: "L", rating: { score: 3.9, count: 238, src: "Google via Wanderlog" } },
-  chestervalley: { name: "Chester Valley Golf Club", addr: "430 Swedesford Rd, Malvern", lat: 40.050, lon: -75.520, county: "C", rating: { score: 4.5, count: 116, src: "Google via WeddingWire" } },
-  whitford:   { name: "Whitford Country Club", addr: "600 Whitford Hills Rd, Exton", lat: 40.030, lon: -75.645, county: "C", rating: { score: 4.6, count: 164, src: "Google via Teebly" } },
-  applecross: { name: "Applecross Country Club", addr: "170 Zynn Rd, Downingtown", lat: 40.045, lon: -75.735, county: "C", rating: null },
-  whitemanor: { name: "White Manor Country Club", addr: "831 Providence Rd, Malvern", lat: 40.005, lon: -75.527, county: "C", rating: { score: 4.6, count: 243, src: "Google via WeddingWire" } },
-  downingtown:{ name: "Downingtown Country Club", addr: "93 Country Club Dr, Downingtown", lat: 40.015, lon: -75.690, county: "C", rating: { score: 4.4, count: 732, src: "Google via WeddingWire" } },
-  honeybrook: { name: "Honeybrook Golf Club", addr: "1422 Cambridge Rd, Honey Brook", lat: 40.083, lon: -75.897, county: "C", rating: { score: 4.8, count: 757, src: "Google via Teebly" } },
-  inniscrone: { name: "Inniscrone Golf Club", addr: "15 Athelone Way, Avondale", lat: 39.840, lon: -75.790, county: "C", rating: null },
-  pennoaks:   { name: "Penn Oaks Golf Club", addr: "150 Penn Oaks Dr, West Chester", lat: 39.935, lon: -75.620, county: "C", rating: { score: 4.6, count: 198, src: "Google via WeddingWire" } },
-  hartefeld:  { name: "Hartefeld National", addr: "1 Hartefeld Dr, Avondale", lat: 39.820, lon: -75.760, county: "C", rating: { score: 4.5, count: 216, src: "Google via Wanderlog" } },
-  waynesborough: { name: "Waynesborough Country Club", addr: "440 Darby Rd, Paoli", lat: 40.035, lon: -75.470, county: "C", rating: null }
+  tanglewood: { name: "Tanglewood Manor Golf Club", addr: "653 Scotland Rd, Quarryville", lat: 39.934, lon: -76.128, county: "L", rating: { score: 4.5, count: 360, src: "Google via Wanderlog" }, usga: { tee: "Blue", rating: 70.5, slope: 117, src: "GAP" } },
+  treetop:    { name: "Tree Top Golf Course", addr: "1624 Creek Rd, Manheim", lat: 40.186, lon: -76.428, county: "L", rating: { score: 3.5, count: 186, src: "Google via Wanderlog" }, usga: { tee: "White", rating: 61.8, slope: 97, src: "GolfLink" } },
+  meadia:     { name: "Meadia Heights Golf Club", addr: "402 Golf Rd, Lancaster", lat: 40.012, lon: -76.283, county: "L", rating: { score: 4.5, count: 119, src: "Google via Wanderlog" }, usga: { tee: "Blue", rating: 69.6, slope: 129, src: "GAP" } },
+  overlook:   { name: "Overlook Golf Course", addr: "2040 Lititz Pike, Lancaster", lat: 40.086, lon: -76.303, county: "L", rating: { score: 3.9, count: 238, src: "Google via Wanderlog" }, usga: { tee: "Black", rating: 70.5, slope: 127, src: "GAP" } },
+  chestervalley: { name: "Chester Valley Golf Club", addr: "430 Swedesford Rd, Malvern", lat: 40.050, lon: -75.520, county: "C", rating: { score: 4.5, count: 116, src: "Google via WeddingWire" }, usga: { tee: "Blue", rating: 72.7, slope: 137, src: "GAP" } },
+  whitford:   { name: "Whitford Country Club", addr: "600 Whitford Hills Rd, Exton", lat: 40.030, lon: -75.645, county: "C", rating: { score: 4.6, count: 164, src: "Google via Teebly" }, usga: { tee: "Wheat", rating: 73.4, slope: 142, src: "GAP" } },
+  applecross: { name: "Applecross Country Club", addr: "170 Zynn Rd, Downingtown", lat: 40.045, lon: -75.735, county: "C", rating: null, usga: { tee: "Black", rating: 73.5, slope: 142, src: "GAP" } },
+  whitemanor: { name: "White Manor Country Club", addr: "831 Providence Rd, Malvern", lat: 40.005, lon: -75.527, county: "C", rating: { score: 4.6, count: 243, src: "Google via WeddingWire" }, usga: { tee: "Silver", rating: 74.6, slope: 148, src: "GAP" } },
+  downingtown:{ name: "Downingtown Country Club", addr: "93 Country Club Dr, Downingtown", lat: 40.015, lon: -75.690, county: "C", rating: { score: 4.4, count: 732, src: "Google via WeddingWire" }, usga: { tee: "Tee I", rating: 71.8, slope: 137, src: "GAP" } },
+  honeybrook: { name: "Honeybrook Golf Club", addr: "1422 Cambridge Rd, Honey Brook", lat: 40.083, lon: -75.897, county: "C", rating: { score: 4.8, count: 757, src: "Google via Teebly" }, usga: { tee: "6 Tees", rating: 69.6, slope: 126, src: "GAP" } },
+  inniscrone: { name: "Inniscrone Golf Club", addr: "15 Athelone Way, Avondale", lat: 39.840, lon: -75.790, county: "C", rating: null, usga: { tee: "Black", rating: 71.9, slope: 133, src: "GAP" } },
+  pennoaks:   { name: "Penn Oaks Golf Club", addr: "150 Penn Oaks Dr, West Chester", lat: 39.935, lon: -75.620, county: "C", rating: { score: 4.6, count: 198, src: "Google via WeddingWire" }, usga: { tee: "Musket", rating: 72.8, slope: 139, src: "GAP" } },
+  hartefeld:  { name: "Hartefeld National", addr: "1 Hartefeld Dr, Avondale", lat: 39.820, lon: -75.760, county: "C", rating: { score: 4.5, count: 216, src: "Google via Wanderlog" }, usga: { tee: "Fazio", rating: 74.0, slope: 141, src: "GAP" } },
+  waynesborough: { name: "Waynesborough Country Club", addr: "440 Darby Rd, Paoli", lat: 40.035, lon: -75.470, county: "C", rating: null, usga: { tee: "Gold", rating: 74.4, slope: 137, src: "GAP" } }
 };
 const EVENTS = [
   { d: "2026-10-02", org: "Harford Christian School", name: "Harford Christian School Golf Outing", v: "tanglewood", time: "8:30 AM start", cost: "Not posted", details: [], src: "https://www.twgolf.com/outings-instruction/calendar/eventdetail/230/-/harford-christian-school-golf-outing" },
@@ -209,6 +213,9 @@ const shortDate = d => new Date(d + "T12:00:00").toLocaleDateString("en-US", { w
 const starsHtml = r => r
   ? `<span class="stars" title="${esc(r.src)}, captured Oct 12, 2026"><span class="s" aria-hidden="true">★★★★★<span class="f" style="width:${(r.score / 5 * 100).toFixed(0)}%">★★★★★</span></span><b>${r.score.toFixed(1)}</b><span>(${r.count.toLocaleString()} Google reviews)</span></span>`
   : '<span class="stars"><span class="na">Rating not yet available</span></span>';
+const usgaHtml = u => u
+  ? `<span class="usga" title="USGA course rating and slope, ${esc(u.tee)} tees, men's, per ${esc(u.src)}"><span class="lbl">USGA</span><b>${u.rating.toFixed(1)}</b><span>/ ${u.slope}</span><span>${esc(u.tee)}</span></span>`
+  : "";
 const costHtml = c => c.startsWith("$") ? "<b>" + esc(c.split(" · ")[0]) + "</b>" + esc(c.includes(" · ") ? " · " + c.split(" · ").slice(1).join(" · ") : "") : esc(c);
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -230,7 +237,7 @@ function renderList() {
         const v = VENUES[e.v];
         return `<a class="row${e.d < TODAY ? " past" : ""}" href="${e.src}" target="_blank" rel="noopener">
           <div><div class="name">${esc(v.name)} <span class="bar">|</span> ${esc(e.name)}</div><div class="org">${esc(e.org)}</div>
-          <div class="where"><span>${esc(v.addr)}</span>${starsHtml(v.rating)}</div></div>
+          <div class="where"><span>${esc(v.addr)}</span>${starsHtml(v.rating)}${usgaHtml(v.usga)}</div></div>
           <div class="right"><div class="time">${esc(e.time)}</div><div class="cost">${costHtml(e.cost)}</div></div>
           <div class="tag ${e.flag ? "warn" : v.county.toLowerCase()}">${e.flag ? esc(e.flag) : (v.county === "L" ? "Lancaster County" : "Chester County")}</div>
         </a>`; }).join("")}</div>
@@ -273,7 +280,7 @@ function renderDetail() {
   if (!active || !filtered().some(e => e.v === active)) { d.innerHTML = '<p class="empty">Hover over a pin to see events, entry cost and outing details. Click to keep it open.</p>'; return; }
   const v = VENUES[active];
   const evs = filtered().filter(e => e.v === active).sort((a, b) => a.d > b.d ? -1 : 1);
-  d.innerHTML = `<h3>${esc(v.name)}</h3><p class="addr">${esc(v.addr)} · ${v.county === "L" ? "Lancaster" : "Chester"} County</p><div class="rating">${starsHtml(v.rating)}</div>` +
+  d.innerHTML = `<h3>${esc(v.name)}</h3><p class="addr">${esc(v.addr)} · ${v.county === "L" ? "Lancaster" : "Chester"} County</p><div class="rating">${starsHtml(v.rating)}${usgaHtml(v.usga)}</div>` +
     evs.map(e => `<a class="ev" href="${e.src}" target="_blank" rel="noopener">
       <div class="name">${esc(e.name)}</div><div class="meta">${esc(e.org)}</div>
       <div class="meta">${shortDate(e.d)} · ${esc(e.time)}${e.d < TODAY ? " · Held" : ""}</div>
