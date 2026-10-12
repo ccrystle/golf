@@ -50,6 +50,9 @@ h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; margin: 0; line
 .seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 .seg button:focus-visible, .pill:focus-visible, .row:focus-visible, .pin:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.seg.sort { flex-basis: 100%; width: max-content; max-width: 100%; }
+.seg.sort button { font-size: 12px; padding: 5px 12px; }
+.row .when { font-size: 13px; color: var(--fg-2); }
 .pill { appearance: none; font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg-2); cursor: pointer; }
 .pill[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .count { color: var(--fg-2); font-size: 13px; margin: 0 0 14px; font-variant-numeric: tabular-nums; }
@@ -146,6 +149,11 @@ footer { margin-top: 40px; color: var(--fg-3); font-size: 12px; max-width: 70ch;
       <button class="pill" data-county="L" aria-pressed="false">Lancaster</button>
       <button class="pill" data-county="C" aria-pressed="false">Chester</button>
     </div>
+    <div class="seg sort" role="group" aria-label="Sort">
+      <button data-sort="date" aria-pressed="true">Date</button>
+      <button data-sort="google" aria-pressed="false">Google rating</button>
+      <button data-sort="usga" aria-pressed="false">USGA rating</button>
+    </div>
   </div>
   <p class="count" id="count"></p>
 
@@ -227,29 +235,41 @@ const usgaHtml = u => u
 const costHtml = c => c.startsWith("$") ? "<b>" + esc(c.split(" · ")[0]) + "</b>" + esc(c.includes(" · ") ? " · " + c.split(" · ").slice(1).join(" · ") : "") : esc(c);
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-let county = "all", view = "list", active = null, pinned = false;
+let county = "all", view = "list", active = null, pinned = false, sort = "date";
 try { const s = localStorage.getItem("ff-view"); if (s === "map" || s === "list") view = s; } catch (e) {}
 if (location.hash === "#map") view = "map";
 
 const filtered = () => EVENTS.filter(e => county === "all" || VENUES[e.v].county === county);
 
+function rowHtml(e, showDate) {
+  const v = VENUES[e.v];
+  return `<a class="row${e.d < TODAY ? " past" : ""}" href="${e.src}" target="_blank" rel="noopener">
+    <div><div class="name">${esc(v.name)} <span class="bar">|</span> ${esc(e.name)}</div><div class="org">${esc(e.org)}</div>
+    <div class="where"><span>${esc(v.addr)}</span>${starsHtml(v.rating)}${usgaHtml(v.usga)}</div></div>
+    <div class="right">${showDate ? `<div class="when">${shortDate(e.d)}</div>` : ""}<div class="time">${esc(e.time)}</div><div class="cost">${costHtml(e.cost)}</div></div>
+    <div class="tag ${e.flag ? "warn" : v.county.toLowerCase()}">${e.flag ? esc(e.flag) : (v.county === "L" ? "Lancaster County" : "Chester County")}</div>
+  </a>`;
+}
+
 function renderList() {
   const list = document.getElementById("list");
   const evs = filtered();
-  const groups = {};
-  evs.forEach(e => (groups[e.d] = groups[e.d] || []).push(e));
-  list.innerHTML = Object.keys(groups).sort().reverse().map(d => `
-    <div class="group">
-      <h2>${fmtDate(d)}${d === TODAY ? '<span class="today">Today</span>' : ""}</h2>
-      <div class="card">${groups[d].map(e => {
-        const v = VENUES[e.v];
-        return `<a class="row${e.d < TODAY ? " past" : ""}" href="${e.src}" target="_blank" rel="noopener">
-          <div><div class="name">${esc(v.name)} <span class="bar">|</span> ${esc(e.name)}</div><div class="org">${esc(e.org)}</div>
-          <div class="where"><span>${esc(v.addr)}</span>${starsHtml(v.rating)}${usgaHtml(v.usga)}</div></div>
-          <div class="right"><div class="time">${esc(e.time)}</div><div class="cost">${costHtml(e.cost)}</div></div>
-          <div class="tag ${e.flag ? "warn" : v.county.toLowerCase()}">${e.flag ? esc(e.flag) : (v.county === "L" ? "Lancaster County" : "Chester County")}</div>
-        </a>`; }).join("")}</div>
-    </div>`).join("");
+  if (sort === "date") {
+    const groups = {};
+    evs.forEach(e => (groups[e.d] = groups[e.d] || []).push(e));
+    list.innerHTML = Object.keys(groups).sort().reverse().map(d => `
+      <div class="group">
+        <h2>${fmtDate(d)}${d === TODAY ? '<span class="today">Today</span>' : ""}</h2>
+        <div class="card">${groups[d].map(e => rowHtml(e, false)).join("")}</div>
+      </div>`).join("");
+  } else {
+    const key = sort === "google"
+      ? e => VENUES[e.v].rating ? VENUES[e.v].rating.score * 10000 + VENUES[e.v].rating.count : -1
+      : e => VENUES[e.v].usga ? VENUES[e.v].usga.rating * 1000 + VENUES[e.v].usga.slope : -1;
+    const sorted = evs.slice().sort((a, b) => key(b) - key(a) || (a.d < b.d ? 1 : -1));
+    list.innerHTML = `<div class="group"><h2>${sort === "google" ? "Highest Google rating first" : "Highest USGA course rating first"}</h2>
+      <div class="card">${sorted.map(e => rowHtml(e, true)).join("")}</div></div>`;
+  }
   document.getElementById("count").textContent = `${evs.length} events · ${new Set(evs.map(e => e.v)).size} clubs`;
 }
 
@@ -318,6 +338,13 @@ document.addEventListener("click", ev => {
   const a = ev.target.closest("a[href]");
   if (a && /^https?:/.test(a.href)) { a.target = "_blank"; a.rel = "noopener"; }
 });
+document.querySelectorAll(".seg.sort button").forEach(b => b.addEventListener("click", () => {
+  sort = b.dataset.sort;
+  document.querySelectorAll(".seg.sort button").forEach(q => q.setAttribute("aria-pressed", q === b));
+  try { localStorage.setItem("ff-sort", sort); } catch (e) {}
+  renderList();
+}));
+try { const ss = localStorage.getItem("ff-sort"); if (["date", "google", "usga"].includes(ss)) { sort = ss; document.querySelectorAll(".seg.sort button").forEach(q => q.setAttribute("aria-pressed", q.dataset.sort === sort)); } } catch (e) {}
 renderList(); setView(view);
 </script>
 </body>
